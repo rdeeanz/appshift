@@ -1,0 +1,22 @@
+{
+  "name": "appshift-monorepo",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "start": "pnpm -r start",
+    "lint": "pnpm -r lint",
+    "db:push": "pnpm --filter web db:push",
+    "db:generate": "pnpm --filter web db:generate"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "eslint": "^8.57.0",
+    "husky": "^9.0.11"
+  }
+}
