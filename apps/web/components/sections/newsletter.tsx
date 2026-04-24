@@ -1,3 +1,5 @@
+"use client";
+
 interface NewsletterProps {
   settings: {
     newsletterTitle: string;

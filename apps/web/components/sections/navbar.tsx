@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Search, Menu, X } from "lucide-react";
 
 export function Navbar() {
   const [mobileMenu, setMobileMenu] = useState(false);
+  const pathname = usePathname();
+  const isBrowsePage = pathname === "/browse";
 
   return (
     <nav className="sticky top-0 z-50 glass border-b border-white/10" style={{ background: "rgba(10, 15, 30, 0.85)", backdropFilter: "blur(16px)" }}>
@@ -14,10 +17,10 @@ export function Navbar() {
         </a>
         
         <div className="hidden md:flex items-center gap-6 text-sm text-muted">
-          <a href="#" className="hover:text-txt transition">Browse</a>
-          <a href="#" className="text-txt font-semibold">New Apps</a>
+          <a href="/browse" className={`transition ${isBrowsePage ? "text-txt font-semibold" : "hover:text-txt"}`}>Browse</a>
+          <a href="/" className={`transition ${isBrowsePage ? "hover:text-txt" : "text-txt font-semibold hover:text-accent"}`}>New Apps</a>
           <a href="#" className="hover:text-txt transition">Categories</a>
-          <a href="#" className="hover:text-txt transition">Submit App</a>
+          <a href="#" className="hover:text-txt transition font-medium text-accent">Submit App</a>
         </div>
         
         <div className="hidden md:flex items-center gap-3">
