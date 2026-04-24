@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AppShift — Shift to better software.</title>
+
+  <!-- Fonts: Fraunces (display) + Figtree (body) + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Figtree:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Alpine.js v3 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fraunces', 'Georgia', 'serif'],
+            sans: ['Figtree', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg:      #06060b;
+      --bg2:     #0d0d16;
+      --bg3:     #13131e;
+      --border:  rgba(255,255,255,0.07);
+      --bv:      rgba(139,92,246,0.35);
+      --text:    #eeedf8;
+      --muted:   #7c7b99;
+      --primary: #8B5CF6;
+      --pglow:   rgba(139,92,246,0.12);
+      --gold:    #f0a535;
+      --gglow:   rgba(240,165,53,0.12);
+      --teal:    #34d399;
+      --rose:    #fb7185;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Figtree', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Noise texture */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.35; mix-blend-mode: overlay;
+    }
+
+    /* Navbar */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      transition: background 0.4s ease, border-color 0.4s ease;
+      border-bottom: 1px solid transparent;
+    }
+    #navbar.scrolled {
+      background: rgba(6, 6, 11, 0.82);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Orb */
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(90px); pointer-events: none;
+    }
+
+    /* Grid overlay */
+    .grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    /* Typography */
+    .font-display { font-family: 'Fraunces', Georgia, serif; }
+    .font-mono    { font-family: 'JetBrains Mono', monospace; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #a78bfa 0%, var(--gold) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Cards */
+    .glass-card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--border);
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .glass-card:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: var(--bv);
+      transform: translateY(-3px);
+      box-shadow: 0 24px 60px rgba(139,92,246,0.08);
+    }
+
+    /* Search */
+    .search-wrap { position: relative; }
+    .search-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Figtree', sans-serif;
+      font-size: 1rem;
+      padding: 16px 150px 16px 50px;
+      transition: all 0.3s ease;
+    }
+    .search-input:focus {
+      outline: none;
+      background: rgba(255,255,255,0.07);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--pglow);
+    }
+    .search-input::placeholder { color: var(--muted); }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary);
+      color: white; border: none; cursor: pointer;
+      border-radius: 8px; font-weight: 600;
+      font-family: 'Figtree', sans-serif;
+      transition: all 0.25s ease;
+    }
+    .btn-primary:hover {
+      background: #7c3aed;
+      box-shadow: 0 8px 32px rgba(139,92,246,0.35);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-family: 'Figtree', sans-serif;
+      transition: all 0.25s ease;
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Badge */
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+
+    /* Platform pill */
+    .plat-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 3px 10px;
+      color: var(--muted);
+    }
+
+    /* Feature tag */
+    .feat-tag {
+      font-size: 0.68rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 2px 9px;
+      color: var(--muted);
+    }
+
+    /* Category card */
+    .cat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .cat-card:hover {
+      border-color: var(--bv);
+      background: var(--bg3);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(139,92,246,0.06);
+    }
+
+    /* Platform tab */
+    .plat-tab {
+      padding: 8px 18px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-family: 'Figtree', sans-serif;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .plat-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .plat-tab.active { color: var(--primary); background: var(--pglow); }
+
+    /* Tag pill */
+    .tag-pill {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .tag-pill:hover { border-color: var(--primary); color: var(--primary); background: var(--pglow); }
+
+    /* License stat bar */
+    .stat-bar { height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; margin-top: 16px; }
+    .stat-bar-fill { height: 100%; border-radius: 2px; width: 0; transition: width 1.6s cubic-bezier(0.16,1,0.3,1); }
+
+    /* Accordion */
+    .acc-panel { max-height: 0; overflow: hidden; transition: max-height 0.45s cubic-bezier(0.16,1,0.3,1); }
+    .acc-panel.open { max-height: 600px; }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* Scroll to top */
+    #scroll-top {
+      position: fixed; bottom: 28px; right: 28px;
+      width: 44px; height: 44px;
+      background: var(--primary);
+      border-radius: 12px; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 98;
+      opacity: 0; transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+    #scroll-top.show { opacity: 1; transform: translateY(0); }
+    #scroll-top:hover { background: #7c3aed; box-shadow: 0 8px 24px rgba(139,92,246,0.4); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+
+    /* Mobile nav */
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: block; }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-cta { display: none; }
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* Hero stat box */
+    .hero-stat {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 22px;
+    }
+
+    /* Link in footer */
+    .footer-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s ease;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .footer-link:hover { color: var(--text); }
+
+    /* Social icon */
+    .social-btn {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease;
+      cursor: pointer; text-decoration: none;
+    }
+    .social-btn:hover { border-color: var(--primary); background: var(--pglow); }
+
+    /* App card github link */
+    .github-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.7rem;
+      color: var(--teal);
+      text-decoration: none;
+      padding: 3px 10px;
+      border: 1px solid rgba(52,211,153,0.25);
+      border-radius: 100px;
+      background: rgba(52,211,153,0.07);
+      transition: all 0.2s ease;
+    }
+    .github-link:hover { background: rgba(52,211,153,0.15); }
+
+    /* About section gradient */
+    .about-gradient {
+      background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(240,165,53,0.06) 100%);
+      border: 1px solid rgba(139,92,246,0.15);
+    }
+
+    /* Eyebrow badge */
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 100px;
+      padding: 5px 16px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #a78bfa;
+    }
+
+    /* App grid */
+    #app-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    /* Tooltip */
+    .tooltip-wrap { position: relative; display: inline-block; }
+    .tooltip-text {
+      visibility: hidden; opacity: 0;
+      position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 0.72rem; color: var(--muted);
+      white-space: nowrap; z-index: 50;
+      transition: opacity 0.2s ease;
+    }
+    .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ NAVBAR ═══════════════════════════ -->
+<nav id="navbar">
+  <div style="max-width:1280px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;">
+    <!-- Logo -->
+    <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+      <div style="width:34px;height:34px;background:linear-gradient(135deg,var(--primary),#6d28d9);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(139,92,246,0.35);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M21 3 9 15"/><path d="M8 21H3v-5"/><path d="M3 21l12-12"/></svg>
+      </div>
+      <span class="font-display" style="font-size:1.2rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);">AppShift</span>
+    </a>
+
+    <!-- Nav Links (desktop) -->
+    <div class="nav-links" style="display:flex;align-items:center;gap:36px;">
+      <a href="#" style="color:var(--muted);font-size:0.78rem;font-weight:600;text-decoration:none;letter-spacing:0.07em;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">NEW APPS</a>
+      <a href="#" style="color:var(--muted);font-size:0.78rem;font-weight:600;text-decoration:none;letter-spacing:0.07em;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">ALL APPS</a>
+      <a href="#" style="color:var(--muted);font-size:0.78rem;font-weight:600;text-decoration:none;letter-spacing:0.07em;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">NEWS</a>
+      <a href="#" style="color:var(--muted);font-size:0.78rem;font-weight:600;text-decoration:none;letter-spacing:0.07em;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">LISTS</a>
+    </div>
+
+    <!-- CTA (desktop) -->
+    <div class="nav-cta" style="display:flex;align-items:center;gap:10px;">
+      <button class="btn-ghost" style="padding:8px 20px;font-size:0.85rem;">Sign In</button>
+      <button class="btn-primary" style="padding:8px 20px;font-size:0.85rem;">Submit App</button>
+    </div>
+
+    <!-- Mobile menu btn -->
+    <button id="mobile-menu-btn" style="display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:8px;" onclick="document.getElementById('mobile-menu').classList.toggle('open')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+  <!-- Mobile menu dropdown -->
+  <div id="mobile-menu" style="background:rgba(6,6,11,0.97);border-top:1px solid var(--border);padding:20px 24px;">
+    <a href="#" class="footer-link" style="font-size:1rem;padding:10px 0;display:block;">New Apps</a>
+    <a href="#" class="footer-link" style="font-size:1rem;padding:10px 0;display:block;">All Apps</a>
+    <a href="#" class="footer-link" style="font-size:1rem;padding:10px 0;display:block;">News</a>
+    <a href="#" class="footer-link" style="font-size:1rem;padding:10px 0;display:block;">Lists</a>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn-ghost" style="flex:1;padding:10px;">Sign In</button>
+      <button class="btn-primary" style="flex:1;padding:10px;">Submit App</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+<section style="position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding:120px 24px 80px;">
+  <!-- Background orbs -->
+  <div class="orb" style="width:700px;height:700px;background:radial-gradient(circle,rgba(139,92,246,0.13) 0%,transparent 70%);top:-200px;right:-150px;"></div>
+  <div class="orb" style="width:500px;height:500px;background:radial-gradient(circle,rgba(240,165,53,0.09) 0%,transparent 70%);bottom:-100px;left:-100px;"></div>
+  <div class="orb" style="width:350px;height:350px;background:radial-gradient(circle,rgba(52,211,153,0.07) 0%,transparent 70%);top:50%;left:38%;"></div>
+  <div class="grid-bg"></div>
+
+  <div style="max-width:1280px;margin:0 auto;width:100%;position:relative;z-index:2;">
+    <!-- Eyebrow -->
+    <div style="margin-bottom:32px;">
+      <span class="eyebrow">
+        <span style="width:6px;height:6px;background:var(--primary);border-radius:50%;display:inline-block;"></span>
+        Crowd-sourced &middot; Community-powered &middot; Always free
+      </span>
+    </div>
+
+    <!-- Main headline -->
+    <h1 class="font-display" style="font-size:clamp(3rem,9vw,6.5rem);font-weight:800;line-height:0.96;letter-spacing:-0.04em;margin-bottom:28px;max-width:900px;">
+      Browse <span class="gradient-text">All Apps</span><br>
+      Find your<br>
+      <em style="font-style:italic;color:var(--muted);font-weight:300;">perfect stack.</em>
+    </h1>
+
+    <p style="font-size:1.1rem;color:var(--muted);line-height:1.75;max-width:520px;margin-bottom:48px;">
+      Whether you're looking for alternatives to your favorite apps or browsing by OS, this directory offers a clear overview. Explore by category, platform, and license — all powered by community ratings.
+    </p>
+
+    <!-- Search -->
+    <div class="search-wrap" style="max-width:640px;margin-bottom:48px;">
+      <div style="position:absolute;left:16px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <input type="text" id="hero-search" class="search-input" placeholder="Search 157,000+ apps on AppShift...">
+      <button class="btn-primary" style="position:absolute;right:6px;top:6px;bottom:6px;padding:0 28px;font-size:0.9rem;">Search</button>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:flex;flex-wrap:wrap;gap:14px;">
+      <div class="hero-stat">
+        <span style="font-size:1.6rem;">🆓</span>
+        <div>
+          <div class="font-mono stat-count" style="font-size:1.3rem;font-weight:700;color:var(--teal);" data-target="92000">0</div>
+          <div style="font-size:0.65rem;color:var(--muted);font-weight:700;letter-spacing:0.1em;">FREE APPS</div>
+        </div>
+      </div>
+      <div class="hero-stat">
+        <span style="font-size:1.6rem;">💰</span>
+        <div>
+          <div class="font-mono stat-count" style="font-size:1.3rem;font-weight:700;color:var(--gold);" data-target="37800">0</div>
+          <div style="font-size:0.65rem;color:var(--muted);font-weight:700;letter-spacing:0.1em;">PAID APPS</div>
+        </div>
+      </div>
+      <div class="hero-stat">
+        <span style="font-size:1.6rem;">🔓</span>
+        <div>
+          <div class="font-mono stat-count" style="font-size:1.3rem;font-weight:700;color:var(--primary);" data-target="27800">0</div>
+          <div style="font-size:0.65rem;color:var(--muted);font-weight:700;letter-spacing:0.1em;">OPEN SOURCE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div style="position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.4;">
+    <span style="font-size:0.62rem;letter-spacing:0.12em;color:var(--muted);font-weight:600;">SCROLL</span>
+    <div style="width:1px;height:36px;background:linear-gradient(to bottom,var(--muted),transparent);"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FRESH APPS ═══════════════════════════ -->
+<section style="padding:88px 24px;background:var(--bg2);border-top:1px solid var(--border);">
+  <div style="max-width:1280px;margin:0 auto;">
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:52px;" class="reveal">
+      <div>
+        <div class="section-label" style="color:var(--primary);">FEATURED</div>
+        <h2 class="font-display" style="font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;line-height:1.1;">Fresh on AppShift</h2>
+      </div>
+      <a href="#" style="text-decoration:none;"><button class="btn-ghost" style="padding:10px 22px;font-size:0.85rem;">View all →</button></a>
+    </div>
+
+    <!-- Search notice -->
+    <div id="search-notice" style="display:none;margin-bottom:20px;padding:10px 18px;background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);border-radius:8px;color:var(--muted);font-size:0.85rem;">
+      Showing <strong id="search-count" style="color:var(--text);"></strong> results
+    </div>
+
+    <div id="app-grid" class="reveal"><!-- JS --></div>
+
+    <div id="no-results" style="display:none;text-align:center;padding:80px 0;">
+      <div style="font-size:3.5rem;margin-bottom:16px;">🔍</div>
+      <div style="font-size:1.25rem;font-weight:600;margin-bottom:8px;">Nothing found</div>
+      <div style="color:var(--muted);">Try a different search term</div>
+    </div>
+
+    <div style="text-align:center;margin-top:52px;" class="reveal">
+      <button class="btn-ghost" style="padding:12px 32px;font-size:0.9rem;">Load More Discoveries</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ CATEGORIES ═══════════════════════════ -->
+<section style="padding:88px 24px;background:var(--bg);border-top:1px solid var(--border);">
+  <div style="max-width:1280px;margin:0 auto;">
+    <div style="margin-bottom:52px;" class="reveal">
+      <div class="section-label" style="color:var(--gold);">BROWSE</div>
+      <h2 class="font-display" style="font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;line-height:1.1;">By Category</h2>
+    </div>
+    <div id="category-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:11px;" class="reveal">
+      <!-- JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ LICENSE ═══════════════════════════ -->
+<section style="padding:88px 24px;background:var(--bg2);border-top:1px solid var(--border);">
+  <div style="max-width:1280px;margin:0 auto;">
+    <div style="margin-bottom:52px;" class="reveal">
+      <div class="section-label" style="color:var(--teal);">FILTER</div>
+      <h2 class="font-display" style="font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;line-height:1.1;">By License</h2>
+    </div>
+
+    <!-- License stat cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:28px;" class="reveal">
+      <div class="glass-card" style="border-radius:16px;padding:28px;cursor:pointer;">
+        <div class="section-label" style="color:var(--teal);">FREE</div>
+        <div class="font-mono" style="font-size:2.8rem;font-weight:700;line-height:1.1;margin-top:8px;">92K</div>
+        <div style="color:var(--muted);font-size:0.8rem;margin-top:4px;">applications</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="background:var(--teal);" data-pct="92"></div></div>
+      </div>
+      <div class="glass-card" style="border-radius:16px;padding:28px;cursor:pointer;">
+        <div class="section-label" style="color:var(--gold);">PAID</div>
+        <div class="font-mono" style="font-size:2.8rem;font-weight:700;line-height:1.1;margin-top:8px;">37.8K</div>
+        <div style="color:var(--muted);font-size:0.8rem;margin-top:4px;">applications</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="background:var(--gold);" data-pct="38"></div></div>
+      </div>
+      <div class="glass-card" style="border-radius:16px;padding:28px;cursor:pointer;">
+        <div class="section-label" style="color:var(--primary);">OPEN SOURCE</div>
+        <div class="font-mono" style="font-size:2.8rem;font-weight:700;line-height:1.1;margin-top:8px;">27.8K</div>
+        <div style="color:var(--muted);font-size:0.8rem;margin-top:4px;">applications</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="background:var(--primary);" data-pct="28"></div></div>
+      </div>
+      <div class="glass-card" style="border-radius:16px;padding:28px;cursor:pointer;">
+        <div class="section-label" style="color:var(--rose);">FREEMIUM</div>
+        <div class="font-mono" style="font-size:2.8rem;font-weight:700;line-height:1.1;margin-top:8px;">15.2K</div>
+        <div style="color:var(--muted);font-size:0.8rem;margin-top:4px;">applications</div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="background:var(--rose);" data-pct="15"></div></div>
+      </div>
+    </div>
+
+    <!-- OSS Accordion -->
+    <div class="glass-card" style="border-radius:16px;overflow:hidden;" id="acc-wrap">
+      <button id="acc-btn" onclick="toggleAcc()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:22px 28px;background:transparent;border:none;cursor:pointer;color:var(--text);font-family:'Figtree',sans-serif;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span style="font-weight:600;font-size:0.95rem;">Open Source Licenses</span>
+          <span class="font-mono" style="font-size:0.62rem;background:var(--pglow);color:var(--primary);padding:2px 10px;border-radius:100px;border:1px solid rgba(139,92,246,0.25);">14 types</span>
+        </div>
+        <svg id="acc-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="transition:transform 0.35s;flex-shrink:0;"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div id="acc-panel" class="acc-panel">
+        <div style="padding:8px 28px 28px;border-top:1px solid var(--border);" id="oss-grid">
+          <!-- JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FEATURES & TAGS ═══════════════════════════ -->
+<section style="padding:88px 24px;background:var(--bg);border-top:1px solid var(--border);">
+  <div style="max-width:1280px;margin:0 auto;">
+    <div style="margin-bottom:52px;" class="reveal">
+      <div class="section-label" style="color:var(--rose);">DISCOVER</div>
+      <h2 class="font-display" style="font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;line-height:1.1;">By Feature &amp; Tag</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:52px;" class="reveal">
+      <div>
+        <div style="font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;font-size:0.95rem;">
+          <span style="color:var(--teal);">⚡</span> Features
+        </div>
+        <div id="tags-features" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+      <div>
+        <div style="font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;font-size:0.95rem;">
+          <span style="color:var(--gold);">🔧</span> Properties
+        </div>
+        <div id="tags-properties" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+      <div>
+        <div style="font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;font-size:0.95rem;">
+          <span style="color:var(--primary);">🏷️</span> Popular Tags
+        </div>
+        <div id="tags-tags" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ PLATFORMS ═══════════════════════════ -->
+<section style="padding:88px 24px;background:var(--bg2);border-top:1px solid var(--border);">
+  <div style="max-width:1280px;margin:0 auto;">
+    <div style="margin-bottom:52px;" class="reveal">
+      <div class="section-label" style="color:var(--primary);">EXPLORE</div>
+      <h2 class="font-display" style="font-size:2.6rem;font-weight:700;letter-spacing:-0.03em;line-height:1.1;">By Platform</h2>
+    </div>
+
+    <div id="plat-tabs" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;" class="reveal"></div>
+
+    <div id="plat-panels" style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:28px;min-height:160px;" class="reveal"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ ABOUT ═══════════════════════════ -->
+<section style="padding:88px 24px;background:var(--bg);border-top:1px solid var(--border);">
+  <div style="max-width:800px;margin:0 auto;text-align:center;" class="reveal">
+    <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:28px;">
+      <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--primary),#6d28d9);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M21 3 9 15"/><path d="M8 21H3v-5"/><path d="M3 21l12-12"/></svg>
+      </div>
+      <span class="font-display" style="font-size:1.5rem;font-weight:800;letter-spacing:-0.03em;">AppShift</span>
+    </div>
+
+    <p class="font-display" style="font-size:1.5rem;font-style:italic;font-weight:400;margin-bottom:24px;color:var(--muted);">"Shift to better software."</p>
+
+    <p style="color:var(--muted);line-height:1.8;font-size:0.95rem;margin-bottom:40px;">
+      AppShift is a free service that helps you find better alternatives to the software you love and hate. The platform is made by Ola and Markus in Sweden, with a lot of help from friends in Italy, Finland, USA, Colombia, Philippines, France, and contributors from all over the world. All lists of alternatives are crowd-sourced — and that's what makes the data powerful and relevant.
+    </p>
+
+    <!-- Social links -->
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:28px;">
+      <a href="#" class="social-btn" title="Discord">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.032.056 2.052 1.508 4.041 2.423 5.993 3.029a.079.079 0 0 0 .084-.026c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028c1.96-.607 3.95-1.522 6.002-3.029a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      </a>
+      <a href="#" class="social-btn" title="X / Twitter">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--muted)"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.736l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href="#" class="social-btn" title="Mastodon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M21.327 8.566c0-4.339-2.843-5.61-2.843-5.61-1.433-.658-3.894-.935-6.451-.956h-.063c-2.557.021-5.016.298-6.45.956 0 0-2.843 1.272-2.843 5.61 0 .993-.019 2.181.012 3.441.103 4.243.778 8.425 4.701 9.463 1.809.479 3.362.579 4.612.51 2.268-.126 3.542-.809 3.542-.809l-.075-1.646s-1.621.511-3.441.449c-1.804-.062-3.707-.194-3.999-2.409a4.523 4.523 0 0 1-.04-.621s1.77.433 4.014.536c1.372.063 2.658-.08 3.965-.236 2.506-.299 4.688-1.843 4.962-3.254.434-2.223.4-5.424.4-5.424z"/><path d="M17.807 13.217v-5.22c0-1.068-.268-1.915-.808-2.54-.557-.625-1.29-.944-2.197-.944-1.048 0-1.847.404-2.364 1.209l-.509.855-.509-.855c-.517-.805-1.316-1.209-2.364-1.209-.907 0-1.639.319-2.197.944-.539.625-.807 1.472-.807 2.54v5.22h2.087V8.145c0-1.069.449-1.613 1.347-1.613 1.994 0 1.994 1.754 1.994 3.408v3.277h2.087v-3.277c0-1.654 0-3.408 1.994-3.408.898 0 1.347.544 1.347 1.613v5.072h2.086z"/></svg>
+      </a>
+      <a href="#" class="social-btn" title="Bluesky">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 2.104.139 3.065 0 4.424 0 5.25c0 .574.296 4.752.5 5.427.666 2.223 3.096 2.954 5.232 2.72-.001 0-.16.016-.445.049C2.046 13.884 1 15.806 1 18c0 2.515 3.357 5.615 6.5 5.615C9.5 23.615 12 20.5 12 20.5s2.5 3.115 4.5 3.115C19.643 23.615 23 20.515 23 18c0-2.194-1.046-4.116-4.287-4.554a6.594 6.594 0 0 1-.445-.049c2.136.234 4.566-.497 5.232-2.72C23.704 9.999 24 5.824 24 5.25c0-.826-.139-2.185-.902-3.146-.659-.838-1.664-1.16-4.3.701C16.046 4.747 13.087 8.686 12 10.8z"/></svg>
+      </a>
+      <a href="mailto:hello@appshift.com" class="social-btn" title="Email">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+      </a>
+    </div>
+
+    <a href="mailto:hello@appshift.com" style="color:var(--primary);font-size:0.875rem;text-decoration:none;">hello@appshift.com</a>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+<footer style="border-top:1px solid var(--border);padding:64px 24px 36px;background:var(--bg);">
+  <div style="max-width:1280px;margin:0 auto;">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px;">
+      <!-- Brand -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--primary),#6d28d9);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M21 3 9 15"/><path d="M8 21H3v-5"/><path d="M3 21l12-12"/></svg>
+          </div>
+          <span class="font-display" style="font-size:1.1rem;font-weight:800;letter-spacing:-0.03em;">AppShift</span>
+        </div>
+        <p style="color:var(--muted);font-size:0.85rem;line-height:1.75;max-width:260px;">
+          The community-powered software directory. Find the perfect app for every need, rated by real users worldwide.
+        </p>
+      </div>
+      <!-- Browse -->
+      <div>
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;color:var(--text);margin-bottom:18px;">BROWSE</div>
+        <a href="#" class="footer-link">New Apps</a>
+        <a href="#" class="footer-link">All Apps</a>
+        <a href="#" class="footer-link">Categories</a>
+        <a href="#" class="footer-link">Platforms</a>
+        <a href="#" class="footer-link">Licenses</a>
+        <a href="#" class="footer-link">Tags</a>
+      </div>
+      <!-- Community -->
+      <div>
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;color:var(--text);margin-bottom:18px;">COMMUNITY</div>
+        <a href="#" class="footer-link">Submit App</a>
+        <a href="#" class="footer-link">Write Review</a>
+        <a href="#" class="footer-link">Create List</a>
+        <a href="#" class="footer-link">Newsletter</a>
+        <a href="#" class="footer-link">Blog</a>
+        <a href="#" class="footer-link">Forum</a>
+      </div>
+      <!-- Company -->
+      <div>
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;color:var(--text);margin-bottom:18px;">COMPANY</div>
+        <a href="#" class="footer-link">About</a>
+        <a href="#" class="footer-link">Privacy Policy</a>
+        <a href="#" class="footer-link">Cookie Policy</a>
+        <a href="#" class="footer-link">FAQ</a>
+        <a href="#" class="footer-link">Advertise</a>
+        <a href="mailto:partners@appshift.com" class="footer-link">Become a Partner</a>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div style="border-top:1px solid var(--border);padding-top:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+      <div style="color:var(--muted);font-size:0.8rem;">© 2026 AppShift · Powered by 27 Kilobyte AB</div>
+      <div style="color:var(--muted);font-size:0.8rem;display:flex;align-items:center;gap:6px;">
+        Built with <span style="color:var(--rose);">♥</span> by the global community
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Scroll to top -->
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="m18 15-6-6-6 6"/></svg>
+</button>
+
+<!-- ═══════════════════════════ SCRIPTS ═══════════════════════════ -->
+<script>
+// ──────────────────── DATA ────────────────────
+const APPS = [
+  { name:"Faceoff", href:"https://github.com/viktorgullmark/faceoff", desc:"A privacy-first local facial recognition tool — no cloud, no tracking.", license:"Free", type:"Facial Recognition", platforms:["Mac","Windows","Linux"], features:["Privacy Focused","No Tracking","AI-Powered","Local"], oss:true, github:"https://github.com/viktorgullmark/faceoff", accent:"#34d399" },
+  { name:"GitWand", href:"https://gitwand.com", desc:"A powerful GUI for Git focused on simplicity and developer experience.", license:"Free", type:"Git Client", platforms:["Mac","Windows"], features:["Diff Viewer","Conflict Resolution","Syntax Highlighting"], oss:false, github:"", accent:"#f0a535" },
+  { name:"TeamBridge", href:"https://teambridge.com", desc:"All-in-one operations management platform for remote teams.", license:"Paid", type:"Project Management", platforms:["Online","iPhone","Android"], features:["Time Tracking","Shift Scheduling","Task Management","Real-time Sync"], oss:false, github:"", accent:"#8B5CF6" },
+  { name:"Brave Origin", href:"https://brave.com/", desc:"Privacy-oriented browser with built-in ad blocker and crypto wallet.", license:"Free", type:"Web Browser", platforms:["Windows","Mac","Linux","Android","iPhone"], features:["Ad-free","No Tracking","Crypto Wallet","Tor Integration"], oss:true, github:"https://github.com/brave/brave-browser", accent:"#fb7185" },
+  { name:"Dinky", href:"https://github.com/dinky/dinky", desc:"Lightweight and versatile note-taking application built for speed.", license:"Free", type:"Note-taking App", platforms:["Linux","Mac","Windows"], features:["Markdown","Minimalist","Fast","Portable"], oss:true, github:"https://github.com/dinky/dinky", accent:"#34d399" },
+  { name:"Open Pencil", href:"https://openpencil.org", desc:"Open-source drawing and diagramming tool with stylus and offline support.", license:"Free", type:"Drawing Tool", platforms:["Mac","Windows","Linux","iPad"], features:["Vector Graphics","Stylus Support","Offline","Custom Brushes"], oss:true, github:"https://github.com/openpencil", accent:"#f0a535" },
+  { name:"Personal Computer", href:"https://pc.app", desc:"Cloud computing environment for high performance tasks on any device.", license:"Paid", type:"Cloud Desktop", platforms:["Online","Mac","Windows"], features:["Remote Access","High Performance","Encrypted Connection"], oss:false, github:"", accent:"#06B6D4" },
+  { name:"WiiFin", href:"https://wiifin.app", desc:"Personal finance app that gamifies your savings and expense tracking.", license:"Freemium", type:"Finance Tracker", platforms:["iPhone","Android"], features:["Budgeting","Expense Tracking","Gamification","Charts"], oss:false, github:"", accent:"#34d399" },
+  { name:"Notch Pilot", href:"https://notchpilot.com", desc:"Utility that turns the MacBook notch into a functional status menu.", license:"Paid", type:"System Utility", platforms:["Mac"], features:["Menu Bar","Customizable","Lightweight"], oss:true, github:"https://github.com/devmegablaster/Notch-Pilot", accent:"#f0a535" },
+  { name:"Tuta Drive", href:"https://tuta.com/drive", desc:"End-to-end encrypted cloud storage using quantum-resistant cryptography.", license:"Free", type:"Cloud Storage", platforms:["Online"], features:["E2E Encryption","2FA","Cloud Sync","Dark Mode","Quantum-Safe"], oss:true, github:"https://github.com/tutao/tutanota", accent:"#34d399" },
+  { name:"Thunderbolt", href:"https://thunderbolt.io", desc:"Open-source cross-platform AI client offering broad model selection.", license:"Free", type:"AI Chatbot", platforms:["Mac","Windows","Linux","Android","iPhone","Docker"], features:["No Tracking","Plugin Support","Ad-free","AI Chatbot"], oss:true, github:"https://github.com/thunderbird/thunderbolt", accent:"#8B5CF6" },
+  { name:"Vibe Island", href:"https://vibeisland.app", desc:"macOS notch panel for AI agents — monitor Claude Code, Codex, Gemini.", license:"Paid", type:"AI Coding Assistant", platforms:["Mac"], features:["Ad-free","Dark Mode","No Registration","AI-Powered"], oss:false, github:"", accent:"#fb7185" },
+  { name:"Nothing Warp", href:"https://nothing.community/d/55831", desc:"Lightweight browser extension to move files between PC and Android instantly.", license:"Free", type:"File Transfer", platforms:["Android","Google Chrome"], features:["Ad-free","No Tracking","File Sending","Large File Transfer"], oss:false, github:"", accent:"#f0a535" },
+  { name:"FluidCAD", href:"https://fluidcad.io", desc:"Browser-based parametric 3D CAD with JavaScript scripting support.", license:"Free", type:"CAD Software", platforms:["VS Code","Node.JS","Online"], features:["Parametric Modeling","Works Offline","3D Renderer","Interactive Prototyping"], oss:true, github:"https://github.com/Fluid-CAD/FluidCAD", accent:"#06B6D4" },
+  { name:"TermOnMac", href:"https://termonmac.com", desc:"Remote terminal for Mac — no SSH setup required, encrypted end-to-end.", license:"Freemium", type:"Terminal Emulator", platforms:["iPhone","iPad"], features:["E2E Encryption","Ad-free","No Tracking","CLI"], oss:false, github:"", accent:"#34d399" },
+  { name:"PureMac", href:"https://github.com/momenbasel/PureMac", desc:"Free, open-source macOS cleaner with zero telemetry and zero bloat.", license:"Free", type:"System Cleaner", platforms:["Mac"], features:["No Registration","Dark Mode","Works Offline","No Tracking"], oss:true, github:"https://github.com/momenbasel/PureMac", accent:"#8B5CF6" },
+  { name:"Bag", href:"https://bitbag.app/", desc:"Bitcoin-only price tracker and net worth dashboard for mobile.", license:"Freemium", type:"Crypto Portfolio", platforms:["Android","iPhone"], features:["Crypto Portfolio Tracker","Bitcoin Price Ticker"], oss:true, github:"https://github.com/UXAVIA/bag", accent:"#f0a535" },
+  { name:"Delineato", href:"https://delineato.app", desc:"Minimalist diagramming and mind mapping tool for creative teams.", license:"Freemium", type:"Diagram Editor", platforms:["Online","Android","iPhone","iPad"], features:["Mind Mapping","Wireframing"], oss:false, github:"", accent:"#fb7185" },
+  { name:"Astropad Workbench", href:"https://astropad.com/product/workbench/", desc:"Modern remote desktop for Mac, iPad, and iPhone with Apple Pencil support.", license:"Freemium", type:"Remote Desktop", platforms:["Mac","iPhone","iPad"], features:["Multi-Monitor","E2E Encryption","Low Latency","Apple Pencil"], oss:false, github:"", accent:"#8B5CF6" }
+];
+
+const CATEGORIES = [
+  {name:"AI Tools & Services",icon:"🤖"}, {name:"Audio & Music",icon:"🎵"}, {name:"Backup & Sync",icon:"🔄"},
+  {name:"Bitcoin & Crypto",icon:"₿"}, {name:"Business & Commerce",icon:"💼"}, {name:"CD/DVD Tools",icon:"💿"},
+  {name:"Development",icon:"💻"}, {name:"Education & Reference",icon:"📚"}, {name:"File Management",icon:"📁"},
+  {name:"File Sharing",icon:"📤"}, {name:"Games",icon:"🎮"}, {name:"Gaming Software",icon:"🕹️"},
+  {name:"Home & Family",icon:"🏠"}, {name:"Network & Admin",icon:"🌐"}, {name:"News & Books",icon:"📰"},
+  {name:"Office & Productivity",icon:"📊"}, {name:"Online Services",icon:"☁️"}, {name:"OS & Utilities",icon:"⚙️"},
+  {name:"Photos & Graphics",icon:"🖼️"}, {name:"Remote Work",icon:"🎒"}, {name:"Security & Privacy",icon:"🔒"},
+  {name:"Social & Comms",icon:"💬"}, {name:"Sport & Health",icon:"🏃"}, {name:"System & Hardware",icon:"🖥️"},
+  {name:"Travel & Location",icon:"🗺️"}, {name:"Video & Movies",icon:"🎬"}, {name:"Web Browsers",icon:"🌍"}
+];
+
+const PLATFORMS = [
+  {name:"DESKTOP", items:[["Windows","45K"],["Mac","38K"],["Linux","22K"],["ChromeOS","8K"],["Haiku","1K"],["ReactOS","0.5K"]]},
+  {name:"MOBILE",  items:[["Android","52K"],["iPhone","47K"],["iPad","31K"],["Windows Phone","4K"],["BlackBerry","2K"],["Sailfish OS","0.8K"]]},
+  {name:"WEB",     items:[["Online","68K"],["SaaS","41K"],["Web App","35K"],["PWA","12K"]]},
+  {name:"DEV",     items:[["Docker","14K"],["Self-Hosted","18K"],["VS Code","7K"],["GitHub","9K"],["Vim","3K"],["Emacs","2K"]]},
+  {name:"BROWSER", items:[["Chrome","22K"],["Firefox","19K"],["Safari","16K"],["Edge","11K"],["Brave","8K"],["Arc","3K"]]},
+  {name:"TV",      items:[["Android TV","6K"],["Apple TV","5K"],["Roku","4K"],["Fire TV","5K"],["WebOS","3K"]]},
+  {name:"GAMING",  items:[["Steam","12K"],["Xbox","8K"],["PlayStation","7K"],["Switch","5K"],["Oculus","3K"]]},
+  {name:"WEARABLE",items:[["Apple Watch","4K"],["Wear OS","3K"],["Fitbit","2K"],["Garmin","1K"]]},
+  {name:"DEVOPS",  items:[["npm","8K"],["Homebrew","6K"],["Flathub","5K"],["Snap","4K"],["AUR","3K"],["Chocolatey","3K"]]}
+];
+
+const OSS_LICENSES = [
+  ["MIT-style (7 licenses)","5.6K"], ["GPL (3 licenses)","5.2K"], ["Apache (2 licenses)","1.7K"],
+  ["AGPL (2 licenses)","1.3K"], ["MPL (2 licenses)","301"], ["LGPL (3 licenses)","251"],
+  ["BSD (4 licenses)","2.1K"], ["Public Domain (3 licenses)","148"], ["EPL (2 licenses)","16"],
+  ["Creative Commons","890"], ["ISC","320"], ["Artistic","89"], ["EUPL","45"], ["Other","2.2K"]
+];
+
+const TAG_DATA = {
+  features: [["Dark Mode",4200],["Self-Hosted",3800],["E2E Encryption",2900],["Offline",3100],["Open Source",5600],["AI-Powered",4700],["Cloud Sync",3600],["CLI",2400],["No Tracking",3200],["Cross-Platform",7100],["PWA",2800],["Portable",1900]],
+  properties: [["Free",9200],["Freemium",4100],["Paid",3800],["Subscription",2900],["Ad-free",4600],["No Account",2200],["Open Core",1800],["Lifetime License",1200]],
+  tags: [["Productivity",8400],["Development",7200],["Privacy",5800],["Security",4900],["Design",6100],["Utility",9800],["Education",4300],["Social",5500],["Backup",3700],["Automation",4100],["Analytics",3200],["Finance",2900]]
+};
+
+// ──────────────────── HELPERS ────────────────────
+function getPlatIcon(p) {
+  const s = p.toLowerCase();
+  if (s.includes('mac') || s.includes('iphone') || s.includes('ipad')) return '🍎';
+  if (s.includes('windows')) return '🪟';
+  if (s.includes('linux')) return '🐧';
+  if (s.includes('android')) return '🤖';
+  if (s.includes('online') || s.includes('chrome') || s.includes('saas')) return '🌐';
+  if (s.includes('code') || s.includes('node')) return '🧩';
+  if (s.includes('docker')) return '🐳';
+  return '💻';
+}
+
+function getLicenseMeta(lic) {
+  const l = lic.toLowerCase();
+  if (l === 'free') return { color:'var(--teal)',  bg:'rgba(52,211,153,0.1)', border:'rgba(52,211,153,0.25)', label:'FREE' };
+  if (l === 'freemium') return { color:'var(--gold)',  bg:'rgba(240,165,53,0.1)', border:'rgba(240,165,53,0.25)', label:'FREEMIUM' };
+  if (l === 'paid') return { color:'var(--rose)',  bg:'rgba(251,113,133,0.1)', border:'rgba(251,113,133,0.25)', label:'PAID' };
+  return { color:'var(--muted)', bg:'rgba(255,255,255,0.05)', border:'var(--border)', label:lic.toUpperCase() };
+}
+
+function fmtCount(n) { return n >= 1000 ? (n/1000).toFixed(1)+'K' : n; }
+
+// ──────────────────── RENDER APPS ────────────────────
+let currentApps = [...APPS];
+
+function renderApps(list) {
+  const grid = document.getElementById('app-grid');
+  const noRes = document.getElementById('no-results');
+  const notice = document.getElementById('search-notice');
+  const cnt = document.getElementById('search-count');
+
+  if (list.length === 0) {
+    grid.innerHTML = '';
+    noRes.style.display = 'block';
+    notice.style.display = 'none';
+    return;
+  }
+
+  noRes.style.display = 'none';
+
+  if (document.getElementById('hero-search').value.trim()) {
+    cnt.textContent = list.length;
+    notice.style.display = 'block';
+  } else {
+    notice.style.display = 'none';
+  }
+
+  grid.innerHTML = list.map(app => {
+    const lm = getLicenseMeta(app.license);
+    const platsHtml = app.platforms.slice(0,3).map(p =>
+      '<span class="plat-pill">' + getPlatIcon(p) + ' ' + p + '</span>'
+    ).join('') + (app.platforms.length > 3
+      ? '<span class="plat-pill tooltip-wrap">+' + (app.platforms.length-3) + ' more<span class="tooltip-text">' + app.platforms.slice(3).join(', ') + '</span></span>'
+      : '');
+
+    const featsHtml = app.features.slice(0,4).map(f =>
+      '<span class="feat-tag">' + f + '</span>'
+    ).join('') + (app.features.length > 4
+      ? '<span class="feat-tag tooltip-wrap">+' + (app.features.length-4) + '<span class="tooltip-text">' + app.features.slice(4).join(', ') + '</span></span>'
+      : '');
+
+    const ossTag = app.oss
+      ? '<span style="font-size:0.65rem;color:var(--teal);background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:100px;padding:2px 9px;font-weight:600;font-family:\'JetBrains Mono\',monospace;">#OSS</span>'
+      : '';
+
+    const githubBtn = app.github
+      ? '<a href="' + app.github + '" target="_blank" class="github-link" onclick="event.stopPropagation()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>'
+      : '';
+
+    return [
+      '<article class="glass-card" style="border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px;cursor:pointer;position:relative;overflow:hidden;" onclick="window.open(\'' + app.href + '\',\'_blank\')">',
+      '  <div style="position:absolute;inset:0;background:radial-gradient(circle at 100% 0%,' + app.accent + '06,transparent 60%);pointer-events:none;"></div>',
+      '  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">',
+      '    <div style="display:flex;align-items:center;gap:14px;min-width:0;">',
+      '      <div style="width:46px;height:46px;background:linear-gradient(135deg,' + app.accent + '22,' + app.accent + '44);border:1px solid ' + app.accent + '33;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">' + getPlatIcon(app.platforms[0]) + '</div>',
+      '      <div style="min-width:0;">',
+      '        <div style="font-weight:700;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + app.name + '</div>',
+      '        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + app.type + '</div>',
+      '      </div>',
+      '    </div>',
+      '    <span class="badge" style="background:' + lm.bg + ';color:' + lm.color + ';border:1px solid ' + lm.border + ';flex-shrink:0;">' + lm.label + '</span>',
+      '  </div>',
+      '  <p style="color:var(--muted);font-size:0.85rem;line-height:1.65;flex:1;">' + app.desc + '</p>',
+      '  <div style="display:flex;flex-wrap:wrap;gap:6px;">' + platsHtml + '</div>',
+      '  <div style="display:flex;flex-wrap:wrap;gap:5px;">' + featsHtml + '</div>',
+      '  <div style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);">',
+      '    <div style="display:flex;gap:8px;align-items:center;">' + ossTag + githubBtn + '</div>',
+      '    <span style="font-size:0.78rem;color:var(--primary);font-weight:600;">View App →</span>',
+      '  </div>',
+      '</article>'
+    ].join('');
+  }).join('');
+}
+
+// ──────────────────── SEARCH ────────────────────
+document.getElementById('hero-search').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  if (!q) {
+    currentApps = [...APPS];
+  } else {
+    currentApps = APPS.filter(a =>
+      a.name.toLowerCase().includes(q) ||
+      a.desc.toLowerCase().includes(q) ||
+      a.type.toLowerCase().includes(q) ||
+      a.features.some(f => f.toLowerCase().includes(q)) ||
+      a.license.toLowerCase().includes(q)
+    );
+  }
+  renderApps(currentApps);
+});
+
+// ──────────────────── RENDER CATEGORIES ────────────────────
+function renderCategories() {
+  const grid = document.getElementById('category-grid');
+  grid.innerHTML = CATEGORIES.map(cat => {
+    const slug = cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g,'');
+    const count = Math.floor(Math.random() * 12 + 1) + '.';
+    const countStr = (Math.floor(Math.random() * 9) + 1) + 'K';
+    return [
+      '<a href="https://appshift.com/category/' + slug + '/" class="cat-card">',
+      '  <span style="font-size:1.35rem;">' + cat.icon + '</span>',
+      '  <div style="flex:1;min-width:0;">',
+      '    <div style="font-weight:600;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + cat.name + '</div>',
+      '    <div class="font-mono" style="font-size:0.65rem;color:var(--muted);margin-top:2px;">' + countStr + '</div>',
+      '  </div>',
+      '  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>',
+      '</a>'
+    ].join('');
+  }).join('');
+}
+
+// ──────────────────── RENDER OSS LICENSES ────────────────────
+function renderOssLicenses() {
+  const el = document.getElementById('oss-grid');
+  el.style.display = 'grid';
+  el.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
+  el.style.gap = '4px';
+  el.style.marginTop = '16px';
+  el.innerHTML = OSS_LICENSES.map(([name, count]) =>
+    '<a href="#" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:8px;text-decoration:none;color:var(--muted);font-size:0.82rem;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(139,92,246,0.08)\';this.style.color=\'var(--primary)\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--muted)\'">' +
+    '<span>' + name + '</span>' +
+    '<span class="font-mono" style="font-size:0.65rem;">' + count + '</span>' +
+    '</a>'
+  ).join('');
+}
+
+// ──────────────────── ACCORDION ────────────────────
+let accOpen = false;
+function toggleAcc() {
+  accOpen = !accOpen;
+  document.getElementById('acc-panel').classList.toggle('open', accOpen);
+  document.getElementById('acc-chevron').style.transform = accOpen ? 'rotate(180deg)' : 'rotate(0)';
+}
+
+// ──────────────────── RENDER TAGS ────────────────────
+function renderTags() {
+  ['features','properties','tags'].forEach(key => {
+    const el = document.getElementById('tags-' + key);
+    el.innerHTML = TAG_DATA[key].map(([name, count]) => {
+      const size = 0.78 + (count / 15000) * 0.36;
+      return '<a href="#" class="tag-pill" style="font-size:' + size + 'rem;">' + name +
+        ' <span class="font-mono" style="font-size:0.62em;opacity:0.55;">' + fmtCount(count) + '</span></a>';
+    }).join('');
+  });
+}
+
+// ──────────────────── RENDER PLATFORMS ────────────────────
+let activePlat = 0;
+function renderPlatforms() {
+  const tabs = document.getElementById('plat-tabs');
+  const panels = document.getElementById('plat-panels');
+
+  tabs.innerHTML = PLATFORMS.map((p, i) =>
+    '<button class="plat-tab' + (i === 0 ? ' active' : '') + '" id="pt-' + i + '" onclick="switchPlat(' + i + ')">' + p.name + '</button>'
+  ).join('');
+
+  panels.innerHTML = PLATFORMS.map((p, i) => {
+    const items = p.items.map(([name, count]) =>
+      '<a href="#" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:0.83rem;font-weight:500;transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--bv)\';this.style.color=\'var(--primary)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text)\'">' +
+      '<span>' + name + '</span>' +
+      '<span class="font-mono" style="font-size:0.68rem;color:var(--muted);">' + count + '</span></a>'
+    ).join('');
+    return '<div id="pp-' + i + '" style="display:' + (i === 0 ? 'grid' : 'none') + ';grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">' + items + '</div>';
+  }).join('');
+}
+
+function switchPlat(i) {
+  document.getElementById('pp-' + activePlat).style.display = 'none';
+  document.getElementById('pt-' + activePlat).classList.remove('active');
+  activePlat = i;
+  document.getElementById('pp-' + i).style.display = 'grid';
+  document.getElementById('pt-' + i).classList.add('active');
+}
+
+// ──────────────────── SCROLL EFFECTS ────────────────────
+const navbar = document.getElementById('navbar');
+const scrollTopBtn = document.getElementById('scroll-top');
+
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 60);
+  scrollTopBtn.classList.toggle('show', window.scrollY > 400);
+}, { passive: true });
+
+// ──────────────────── REVEAL ON SCROLL ────────────────────
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.06, rootMargin: '0px 0px -50px 0px' });
+
+// ──────────────────── COUNT UP ────────────────────
+function countUp(el) {
+  const target = parseInt(el.getAttribute('data-target'));
+  let start = null;
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const step = ts => {
+    if (!start) start = ts;
+    const p = Math.min((ts - start) / 1500, 1);
+    el.textContent = fmtCount(Math.floor(ease(p) * target));
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = fmtCount(target);
+  };
+  requestAnimationFrame(step);
+}
+const cntObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { countUp(e.target); cntObs.unobserve(e.target); } });
+}, { threshold: 0.3 });
+
+// ──────────────────── STAT BARS ────────────────────
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.style.width = e.target.getAttribute('data-pct') + '%'; barObs.unobserve(e.target); } });
+}, { threshold: 0.5 });
+
+// ──────────────────── MOBILE NAV SHOW ────────────────────
+function setupMobileNav() {
+  const btn = document.getElementById('mobile-menu-btn');
+  if (window.innerWidth <= 768) btn.style.display = 'block';
+  window.addEventListener('resize', () => {
+    btn.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+  });
+}
+
+// ──────────────────── INIT ────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderApps(APPS);
+  renderCategories();
+  renderOssLicenses();
+  renderPlatforms();
+  renderTags();
+  setupMobileNav();
+
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  document.querySelectorAll('.stat-count').forEach(el => cntObs.observe(el));
+  document.querySelectorAll('.stat-bar-fill').forEach(el => barObs.observe(el));
+
+  if (window.lucide) lucide.createIcons();
+});
+</script>
+</body>
+</html>
