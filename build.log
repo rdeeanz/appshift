@@ -1,0 +1,75 @@
+
+> appshift@0.1.0 build /Users/fyi/appshift
+> next build
+
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Unrecognized key(s) in object: 'turbopack'
+Payload: You can safely ignore the "Invalid next.config" warning above. This only occurs on Next.js 15.2.x or lower. We recommend upgrading to the latest supported Next.js version to resolve this warning.
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+  ▲ Next.js 15.0.0
+  - Environments: .env
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Skipped not serializable cache item 'Compilation/modules|/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/Users/fyi/appshift/app/(app)/globals.css': No serializer registered for PostCSSSyntaxError
+<w> while serializing webpack/lib/cache/PackFileCacheStrategy.PackContentItems -> webpack/lib/NormalModule -> webpack/lib/ModuleBuildError -> PostCSSSyntaxError
+Failed to compile.
+
+./app/(app)/globals.css:56:5
+Syntax error: /Users/fyi/appshift/app/(app)/globals.css The `duration-180` class does not exist. If `duration-180` is a custom class, make sure it is defined within a `@layer` directive.
+
+  54 | @layer components {
+  55 |   .app-card {
+> 56 |     @apply bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] transition-all duration-180;
+     |     ^
+  57 |   }
+  58 |   .app-card:hover {
+
+./app/(app)/globals.css
+Syntax error: /Users/fyi/appshift/app/(app)/globals.css The `duration-180` class does not exist. If `duration-180` is a custom class, make sure it is defined within a `@layer` directive. (56:5)
+
+  54 | @layer components {
+  55 |   .app-card {
+> 56 |     @apply bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] transition-all duration-180;
+     |     ^
+  57 |   }
+  58 |   .app-card:hover {
+
+    at tryRunOrWebpackError (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:313010)
+    at __webpack_require_module__ (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:131165)
+    at __nested_webpack_require_153728__ (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:130607)
+    at /Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:131454
+    at symbolIterator (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/neo-async/async.js:1:14444)
+    at done (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/neo-async/async.js:1:14824)
+    at Hook.eval [as callAsync] (eval at create (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:13:28858), <anonymous>:15:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:13:26012)
+    at /Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:130328
+    at symbolIterator (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/neo-async/async.js:1:14402)
+-- inner error --
+Syntax error: /Users/fyi/appshift/app/(app)/globals.css The `duration-180` class does not exist. If `duration-180` is a custom class, make sure it is defined within a `@layer` directive. (56:5)
+
+  54 | @layer components {
+  55 |   .app-card {
+> 56 |     @apply bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] transition-all duration-180;
+     |     ^
+  57 |   }
+  58 |   .app-card:hover {
+
+    at Object.<anonymous> (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/Users/fyi/appshift/app/(app)/globals.css:1:7)
+    at /Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:922602
+    at Hook.eval [as call] (eval at create (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:13:28636), <anonymous>:7:1)
+    at Hook.CALL_DELEGATE [as _call] (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:13:25906)
+    at /Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:131198
+    at tryRunOrWebpackError (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:312964)
+    at __webpack_require_module__ (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:131165)
+    at __nested_webpack_require_153728__ (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:130607)
+    at /Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/webpack/bundle5.js:28:131454
+    at symbolIterator (/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/compiled/neo-async/async.js:1:14444)
+
+Generated code for /Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!/Users/fyi/appshift/node_modules/.pnpm/next@15.0.0_react-dom@19.0.0_react@19.0.0__react@19.0.0_sass@1.77.4/node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!/Users/fyi/appshift/app/(app)/globals.css
+
+Import trace for requested module:
+./app/(app)/globals.css
+
+
+> Build failed because of webpack errors
+ ELIFECYCLE  Command failed with exit code 1.

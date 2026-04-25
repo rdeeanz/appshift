@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #f9f8f6;
+    --surface: #ffffff;
+    --surface-alt: #f3f1ee;
+    --border: #e8e5e0;
+    --txt: #1a1714;
+    --muted: #6b6760;
+    --faint: #b5b2ac;
+    --accent: #c96442;
+    --accentHover: #b0522f;
+    --accentLight: #fdf0eb;
+    --successBg: #edf6ee;
+    --successBorder: #c5e0c7;
+    --successText: #2e7d32;
+    --warningBg: #fff8e6;
+    --warningText: #b45309;
+    --footer: #f3f1ee;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+  }
+
+  [data-theme='dark'] {
+    --bg: #171411;
+    --surface: #211d19;
+    --surface-alt: #2a241f;
+    --border: #3a312b;
+    --txt: #f5efe7;
+    --muted: #c1b7ad;
+    --faint: #9d9288;
+    --accent: #e07a57;
+    --accentHover: #ef8e6c;
+    --accentLight: #31241d;
+    --successBg: #203225;
+    --successBorder: #34563d;
+    --successText: #9dd6a7;
+    --warningBg: #3a2c18;
+    --warningText: #f4c97b;
+    --footer: #1d1915;
+  }
+
+  body {
+    @apply bg-[var(--bg)] text-[var(--txt)] antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+  }
+}
+
+@layer components {
+  .app-card {
+    @apply bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] transition-all duration-[180ms];
+  }
+  .app-card:hover {
+    @apply shadow-[var(--shadow-md)] -translate-y-[2px];
+  }
+  .badge {
+    @apply inline-flex items-center px-[0.55rem] py-[0.15rem] rounded-full text-[0.6875rem] font-medium leading-[1.6];
+  }
+  .badge-free { @apply bg-[var(--successBg)] text-[var(--successText)]; }
+  .badge-freemium { @apply bg-[var(--warningBg)] text-[var(--warningText)]; }
+  .badge-type { @apply bg-[var(--surface-alt)] text-[var(--muted)] font-normal; }
+  .badge-new { @apply bg-[var(--accentLight)] text-[var(--accent)] border border-[#f5d8cc]; }
+  
+  .plat-tag {
+    @apply bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] text-[0.6875rem] px-2 py-[0.15rem] rounded-[var(--radius-sm)];
+  }
+  .feat-tag {
+    @apply bg-[var(--surface-alt)] text-[var(--muted)] text-[0.6875rem] px-2 py-[0.15rem] rounded-[var(--radius-sm)];
+  }
+  
+  .btn-primary {
+    @apply bg-[var(--accent)] text-white rounded-[var(--radius-md)] px-[1.1rem] py-2 text-[0.875rem] font-medium transition-colors hover:bg-[var(--accentHover)];
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-dot {
+  @apply w-[7px] h-[7px] bg-[#2e7d32] rounded-full;
+  animation: pulse 2s ease-in-out infinite;
+}
