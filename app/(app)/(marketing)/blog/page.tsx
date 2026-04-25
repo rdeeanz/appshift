@@ -4,6 +4,8 @@ import { Calendar } from 'lucide-react'
 import { getPayload } from 'payload'
 import configPromise from '@/payload.config'
 
+export const dynamic = 'force-dynamic'
+
 export default async function BlogPage() {
   const payload = await getPayload({ config: configPromise })
   const { docs: posts } = await payload.find({

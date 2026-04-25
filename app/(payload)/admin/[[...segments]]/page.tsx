@@ -1,8 +1,12 @@
-import { RootPage, generateMetadata } from '@payloadcms/next/views'
+import { RootPage, generatePageMetadata } from '@payloadcms/next/views'
+import configPromise from '../../../../payload.config'
 import { importMap } from '../importMap.js'
 
-export { generateMetadata }
+export const generateMetadata = (props: any) =>
+  generatePageMetadata({ ...props, config: configPromise })
 
-const Page = (props: any) => <RootPage {...props} importMap={importMap} />
+const Page = (props: any) => (
+  <RootPage {...props} config={configPromise} importMap={importMap} />
+)
 
 export default Page

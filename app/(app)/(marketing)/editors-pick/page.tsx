@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import configPromise from '@/payload.config'
 import { AppCard } from '@/components/sections/app-card'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function EditorsPickPage() {
   const payload = await getPayload({ config: configPromise })

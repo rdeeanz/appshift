@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv'
 dotenv.config()
-import { seed } from './lib/seed.ts'
+import { seed } from './lib/seed'
 
 
 seed().then(() => {

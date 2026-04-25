@@ -1,5 +1,5 @@
 import { getPayload } from 'payload'
-import configPromise from '../payload.config.ts'
+import configPromise from '../payload.config'
 
 const APPS = [
   { name: "Faceoff", link: "https://www.vincentgregoire.com/faceoff/", description: "A TUI app for following NHL hockey games in real-time.", license: "Free, Open Source (MIT)", type: "Live Score App", platforms: "Mac, Windows, Linux, BSD, Python", features: "CLI, Live Score, Terminal-based, Real-time updates, Python-based", origin: "Canada", categoryName: "Media" },

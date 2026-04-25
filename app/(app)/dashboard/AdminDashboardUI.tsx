@@ -20,8 +20,14 @@ import {
   Loader2
 } from 'lucide-react'
 import { createPostAction, updatePostAction, deletePostAction } from './blog-actions'
+import {
+  createUserAction,
+  deleteUserAction,
+  resetPasswordAction,
+  updateUserAction,
+} from './user-actions'
 
-export function AdminDashboardUI({ user, stats, apps, users, posts, categories }: any) {
+export function AdminDashboardUI({ user, stats, apps, users, posts, categories, canManageUsers }: any) {
   const [activeTab, setActiveTab] = useState('Overview')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<any>(null)
@@ -49,9 +55,9 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories }
     { name: 'Overview', icon: LayoutDashboard },
     { name: 'Apps', icon: Package },
     { name: 'Blog', icon: FileText },
-    { name: 'Users', icon: UsersIcon },
+    canManageUsers ? { name: 'Users', icon: UsersIcon } : null,
     { name: 'Settings', icon: Settings },
-  ]
+  ].filter(Boolean) as Array<{ name: string; icon: React.ComponentType<{ className?: string }> }>
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type })
@@ -97,6 +103,82 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories }
       setPostToDelete(null)
     } else {
       showToast(res.error || 'Failed to delete post', 'error')
+    }
+  }
+
+  const handleCreateUser = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (formData.get('password') !== formData.get('confirmPassword')) {
+      showToast('Passwords do not match', 'error')
+      return
+    }
+
+    setIsPending(true)
+    try {
+      const res = await createUserAction(formData)
+      if (res.success) {
+        showToast('User created successfully')
+        setIsModalOpen(false)
+      } else {
+        showToast(res.error || 'Failed to create user', 'error')
+      }
+    } catch (error: any) {
+      showToast(error.message || 'Failed to create user', 'error')
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  const handleUpdateUser = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    try {
+      const formData = new FormData(e.currentTarget)
+      const res = await updateUserAction(editingUser.id, formData)
+      if (res.success) {
+        showToast('User updated successfully')
+        setEditingUser(null)
+      } else {
+        showToast(res.error || 'Failed to update user', 'error')
+      }
+    } catch (error: any) {
+      showToast(error.message || 'Failed to update user', 'error')
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    setIsPending(true)
+    try {
+      const res = await deleteUserAction(userToDelete.id)
+      if (res.success) {
+        showToast('User deleted successfully')
+        setUserToDelete(null)
+      } else {
+        showToast(res.error || 'Failed to delete user', 'error')
+      }
+    } catch (error: any) {
+      showToast(error.message || 'Failed to delete user', 'error')
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  const handleResetPassword = async (email: string) => {
+    setIsPending(true)
+    try {
+      const res = await resetPasswordAction(email)
+      if (res.success) {
+        showToast('Password reset link sent')
+      } else {
+        showToast(res.error || 'Failed to send reset link', 'error')
+      }
+    } catch (error: any) {
+      showToast(error.message || 'Failed to send reset link', 'error')
+    } finally {
+      setIsPending(false)
     }
   }
 
@@ -182,10 +264,10 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories }
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { label: 'Total Apps', value: stats.totalApps, icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-                { label: 'Total Users', value: stats.totalUsers, icon: UsersIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                canManageUsers ? { label: 'Total Users', value: stats.totalUsers, icon: UsersIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' } : null,
                 { label: 'Pending Submissions', value: stats.pendingSubmissions, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
                 { label: 'Total Blog Posts', value: stats.totalBlogPosts, icon: FileText, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-              ].map((stat, i) => (
+              ].filter(Boolean).map((stat: any, i) => (
                 <div key={i} className="bg-surface border border-border rounded-3xl p-6 shadow-sm">
                   <div className={`w-12 h-12 ${stat.bg} rounded-2xl flex items-center justify-center mb-4`}>
                     <stat.icon className={`w-6 h-6 ${stat.color}`} />
@@ -231,7 +313,7 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories }
           </div>
         )}
 
-        {activeTab === 'Users' && (
+        {activeTab === 'Users' && canManageUsers && (
           <div className="bg-surface border border-border rounded-3xl overflow-hidden shadow-sm">
             <table className="w-full text-left">
               <thead>
@@ -528,6 +610,7 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories }
                 <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Role</label>
                 <select name="role" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent appearance-none">
                   <option value="user">User</option>
+                  <option value="editor">Editor</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
@@ -570,6 +653,7 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories }
                 <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Role</label>
                 <select name="role" defaultValue={editingUser.role} className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent appearance-none">
                   <option value="user">User</option>
+                  <option value="editor">Editor</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>

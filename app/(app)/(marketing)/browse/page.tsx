@@ -4,7 +4,7 @@ import configPromise from '@/payload.config'
 import { AppCard } from '@/components/sections/app-card'
 import { Search, Filter, SlidersHorizontal } from 'lucide-react'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function BrowsePage({
   searchParams,
@@ -83,7 +83,7 @@ export default async function BrowsePage({
                   {categories.docs.map((cat, i) => (
                     <a 
                       key={i} 
-                      href={`/browse?category=${cat.name}`}
+                      href={`/browse?category=${encodeURIComponent(cat.name)}`}
                       className={`px-3 py-2 rounded-lg text-[0.875rem] transition-all ${category === cat.name ? 'bg-accentLight text-accent font-semibold' : 'text-muted hover:bg-surface-alt'}`}
                     >
                       <span className="mr-2">{cat.icon}</span>
@@ -149,7 +149,7 @@ export default async function BrowsePage({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {apps.docs.map((app, i) => (
+              {apps.docs.map((app: any, i) => (
                 <AppCard key={i} app={app} />
               ))}
             </div>
@@ -167,7 +167,7 @@ export default async function BrowsePage({
             {apps.totalPages > 1 && (
               <div className="mt-12 flex items-center justify-center gap-2">
                 <a
-                  href={`/browse?${category ? `category=${category}&` : ''}${platform ? `platform=${platform}&` : ''}page=${apps.prevPage || 1}`}
+                  href={`/browse?${category ? `category=${encodeURIComponent(category)}&` : ''}${platform ? `platform=${encodeURIComponent(platform)}&` : ''}page=${apps.prevPage || 1}`}
                   className={`px-4 py-2 border border-border rounded-lg text-[0.875rem] font-medium transition-all ${!apps.hasPrevPage ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'hover:bg-surface-alt'}`}
                 >
                   Previous
@@ -177,7 +177,7 @@ export default async function BrowsePage({
                   {Array.from({ length: apps.totalPages }, (_, i) => i + 1).map((p) => (
                     <a
                       key={p}
-                      href={`/browse?${category ? `category=${category}&` : ''}${platform ? `platform=${platform}&` : ''}page=${p}`}
+                      href={`/browse?${category ? `category=${encodeURIComponent(category)}&` : ''}${platform ? `platform=${encodeURIComponent(platform)}&` : ''}page=${p}`}
                       className={`w-10 h-10 flex items-center justify-center rounded-lg text-[0.875rem] transition-all ${apps.page === p ? 'bg-accent text-white font-bold' : 'text-muted hover:bg-surface-alt'}`}
                     >
                       {p}
@@ -186,7 +186,7 @@ export default async function BrowsePage({
                 </div>
 
                 <a
-                  href={`/browse?${category ? `category=${category}&` : ''}${platform ? `platform=${platform}&` : ''}page=${apps.nextPage || apps.totalPages}`}
+                  href={`/browse?${category ? `category=${encodeURIComponent(category)}&` : ''}${platform ? `platform=${encodeURIComponent(platform)}&` : ''}page=${apps.nextPage || apps.totalPages}`}
                   className={`px-4 py-2 border border-border rounded-lg text-[0.875rem] font-medium transition-all ${!apps.hasNextPage ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'hover:bg-surface-alt'}`}
                 >
                   Next

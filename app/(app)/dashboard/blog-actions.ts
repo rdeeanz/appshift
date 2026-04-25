@@ -27,7 +27,7 @@ export async function createPostAction(formData: FormData) {
   const payload = await getPayload({ config: configPromise })
 
   try {
-    let heroImageId: string | undefined
+    let heroImageId: number | undefined
 
     if (heroImage && heroImage.size > 0) {
       const arrayBuffer = await heroImage.arrayBuffer()
@@ -85,7 +85,7 @@ export async function updatePostAction(id: string, formData: FormData) {
   const payload = await getPayload({ config: configPromise })
 
   try {
-    let heroImageId: string | undefined
+    let heroImageId: number | undefined
 
     if (heroImage && heroImage.size > 0) {
       const arrayBuffer = await heroImage.arrayBuffer()

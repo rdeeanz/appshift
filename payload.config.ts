@@ -4,15 +4,12 @@ import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
-import { importMap } from './app/(payload)/admin/importMap.js'
-
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
   admin: {
     user: 'users',
-    importMap,
   },
   collections: [
     {

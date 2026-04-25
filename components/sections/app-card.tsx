@@ -5,6 +5,7 @@ import { ExternalLink, Info } from 'lucide-react'
 interface AppCardProps {
   app: {
     id: number | string
+    name: string
     link: string
     description: string
     license?: string

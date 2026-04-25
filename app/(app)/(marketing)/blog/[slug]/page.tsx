@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@/payload.config'
 
+export const dynamic = 'force-dynamic'
+
 export default async function BlogPostPage({
   params,
 }: {
@@ -23,6 +25,10 @@ export default async function BlogPostPage({
 
   const post = posts[0]
   if (!post) return notFound()
+  const heroImage =
+    typeof post.heroImage === 'object' && post.heroImage !== null
+      ? post.heroImage
+      : null
 
   return (
     <article className="bg-bg min-h-screen pb-24">
@@ -64,9 +70,9 @@ export default async function BlogPostPage({
 
       {/* Hero Image */}
       <div className="max-w-[680px] mx-auto w-full h-[300px] md:h-[400px] bg-surface-alt border border-border flex items-center justify-center relative overflow-hidden mb-16 rounded-3xl">
-        {post.heroImage?.url ? (
+        {heroImage?.url ? (
           <img 
-            src={post.heroImage.url} 
+            src={heroImage.url}
             alt={post.title} 
             className="w-full h-full object-cover" 
           />

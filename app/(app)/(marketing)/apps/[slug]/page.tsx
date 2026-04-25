@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ExternalLink, Info, Globe, Shield, Monitor } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AppDetailPage({
   params,
 }: {
@@ -50,7 +52,7 @@ export default async function AppDetailPage({
                   )}
                   {app.category && (
                     <Link 
-                      href={`/browse?category=${app.category.name}`}
+                      href={`/browse?category=${encodeURIComponent(app.category.name)}`}
                       className="badge badge-type text-[0.75rem] px-3 py-1 hover:border-accent hover:text-accent transition-colors"
                     >
                       {app.category.name}

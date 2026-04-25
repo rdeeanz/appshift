@@ -7,7 +7,7 @@ import { FeaturedSpotlight } from '@/components/sections/featured-spotlight'
 import { AppCard } from '@/components/sections/app-card'
 import Link from 'next/link'
 
-export const revalidate = 60 // revalidate every 60 seconds
+export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const payload = await getPayload({ config: configPromise })
@@ -65,7 +65,7 @@ export default async function HomePage() {
             {categories.docs.map((cat, i) => (
               <Link 
                 key={i} 
-                href={`/browse?category=${cat.name}`}
+                href={`/browse?category=${encodeURIComponent(cat.name)}`}
                 className="flex flex-col items-center gap-3 p-4 bg-bg border border-border rounded-xl hover:border-accent hover:shadow-sm transition-all text-center group"
               >
                 <span className="text-[1.5rem] group-hover:scale-110 transition-transform">{cat.icon}</span>

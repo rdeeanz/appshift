@@ -11,13 +11,20 @@ async function getAuthUser() {
   return user
 }
 
+const USER_ROLES = ['admin', 'editor', 'user'] as const
+type UserRole = (typeof USER_ROLES)[number]
+
+function getRole(value: FormDataEntryValue | null): UserRole {
+  return USER_ROLES.includes(value as UserRole) ? value as UserRole : 'user'
+}
+
 export async function createUserAction(formData: FormData) {
   const user = await getAuthUser()
   if (!user || user.role !== 'admin') throw new Error('Unauthorized')
 
   const username = formData.get('username') as string
   const email = formData.get('email') as string
-  const role = formData.get('role') as string
+  const role = getRole(formData.get('role'))
   const password = formData.get('password') as string
 
   const payload = await getPayload({ config: configPromise })
@@ -45,7 +52,7 @@ export async function updateUserAction(id: string, formData: FormData) {
 
   const username = formData.get('username') as string
   const email = formData.get('email') as string
-  const role = formData.get('role') as string
+  const role = getRole(formData.get('role'))
 
   const payload = await getPayload({ config: configPromise })
 

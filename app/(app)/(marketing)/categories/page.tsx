@@ -4,7 +4,7 @@ import configPromise from '@/payload.config'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function CategoriesPage() {
   const payload = await getPayload({ config: configPromise })
