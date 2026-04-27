@@ -174,15 +174,46 @@ export default async function BrowsePage({
                 </a>
                 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: apps.totalPages }, (_, i) => i + 1).map((p) => (
-                    <a
-                      key={p}
-                      href={`/browse?${category ? `category=${encodeURIComponent(category)}&` : ''}${platform ? `platform=${encodeURIComponent(platform)}&` : ''}page=${p}`}
-                      className={`w-10 h-10 flex items-center justify-center rounded-lg text-[0.875rem] transition-all ${apps.page === p ? 'bg-accent text-white font-bold' : 'text-muted hover:bg-surface-alt'}`}
-                    >
-                      {p}
-                    </a>
-                  ))}
+                  {(() => {
+                    const total = apps.totalPages
+                    const current = apps.page
+                    const pages: (number | string)[] = []
+                    const addPage = (p: number) => pages.push(p)
+                    const addEllipsis = () => { if (pages[pages.length - 1] !== '...') pages.push('...') }
+
+                    if (total <= 7) {
+                      for (let p = 1; p <= total; p++) addPage(p)
+                    } else {
+                      if (current <= 4) {
+                        for (let p = 1; p <= 5; p++) addPage(p)
+                        addEllipsis()
+                        addPage(total)
+                      } else if (current >= total - 3) {
+                        addPage(1)
+                        addEllipsis()
+                        for (let p = total - 4; p <= total; p++) addPage(p)
+                      } else {
+                        addPage(1)
+                        addEllipsis()
+                        for (let p = current - 1; p <= current + 1; p++) addPage(p)
+                        addEllipsis()
+                        addPage(total)
+                      }
+                    }
+                    return pages.map((p, i) =>
+                      typeof p === 'number' ? (
+                        <a
+                          key={p}
+                          href={`/browse?${category ? `category=${encodeURIComponent(category)}&` : ''}${platform ? `platform=${encodeURIComponent(platform)}&` : ''}page=${p}`}
+                          className={`w-10 h-10 flex items-center justify-center rounded-lg text-[0.875rem] transition-all ${apps.page === p ? 'bg-accent text-white font-bold' : 'text-muted hover:bg-surface-alt'}`}
+                        >
+                          {p}
+                        </a>
+                      ) : (
+                        <span key={`ellipsis-${i}`} className="w-10 h-10 flex items-center justify-center text-[0.875rem] text-muted">…</span>
+                      )
+                    )
+                  })()}
                 </div>
 
                 <a

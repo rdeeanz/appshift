@@ -124,7 +124,7 @@ export const seed = async () => {
     data: {
       username: 'admin',
       email: 'admin@appshift.io',
-      password: 'password123',
+      password: process.env.SEED_ADMIN_PASSWORD || crypto.randomUUID(),
       role: 'admin',
     },
   })

@@ -4,6 +4,7 @@ import { Calendar, ChevronLeft } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import configPromise from '@/payload.config'
+import { sanitizeHtml } from '@/lib/sanitize-html'
 
 export const dynamic = 'force-dynamic'
 
@@ -91,7 +92,7 @@ export default async function BlogPostPage({
           text-muted text-[1.1875rem] leading-[1.8] font-serif
           prose-headings:text-txt prose-headings:font-serif prose-headings:font-bold
           prose-p:mb-8 prose-strong:text-txt"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
         />
 
         <div className="mt-16 pt-12 border-t border-border flex items-center justify-between">

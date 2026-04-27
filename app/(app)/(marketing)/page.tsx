@@ -30,6 +30,7 @@ export default async function HomePage() {
       },
     },
     limit: 3,
+    depth: 1,
   })
 
   // Fetch Recent Apps (top 6)
@@ -37,6 +38,7 @@ export default async function HomePage() {
     collection: 'apps',
     sort: '-createdAt',
     limit: 6,
+    depth: 1,
   })
 
   // Fetch Categories

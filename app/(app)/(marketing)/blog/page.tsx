@@ -11,6 +11,7 @@ export default async function BlogPage() {
   const { docs: posts } = await payload.find({
     collection: 'posts',
     sort: '-date',
+    depth: 1,
   })
 
   return (

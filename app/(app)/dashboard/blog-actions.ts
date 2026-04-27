@@ -85,12 +85,24 @@ export async function updatePostAction(id: string, formData: FormData) {
   const payload = await getPayload({ config: configPromise })
 
   try {
+    // Fetch existing post to get old slug and heroImage for cleanup
+    const existing = await payload.findByID({
+      collection: 'posts',
+      id,
+      depth: 1,
+    })
+    const oldSlug = existing?.slug as string | undefined
+    const oldHeroImageId =
+      typeof existing?.heroImage === 'object' && existing?.heroImage !== null
+        ? (existing.heroImage as { id: number }).id
+        : undefined
+
     let heroImageId: number | undefined
 
     if (heroImage && heroImage.size > 0) {
       const arrayBuffer = await heroImage.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
-      
+
       const media = await payload.create({
         collection: 'media',
         data: {
@@ -125,7 +137,23 @@ export async function updatePostAction(id: string, formData: FormData) {
       id,
       data: updateData,
     })
+
+    // Delete old hero image if it was replaced
+    if (heroImageId && oldHeroImageId) {
+      try {
+        await payload.delete({
+          collection: 'media',
+          id: oldHeroImageId,
+        })
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+
     revalidatePath('/blog')
+    if (oldSlug && oldSlug !== slug) {
+      revalidatePath(`/blog/${oldSlug}`)
+    }
     revalidatePath(`/blog/${slug}`)
     revalidatePath('/dashboard')
     return { success: true }

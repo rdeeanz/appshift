@@ -14,7 +14,7 @@ export async function loginAction(prevState: any, formData: FormData) {
       collection: 'users',
       data: { email, password },
     })
-    
+
     if (result.token) {
       const cookieStore = await cookies()
       cookieStore.set('payload-token', result.token, {
@@ -27,8 +27,15 @@ export async function loginAction(prevState: any, formData: FormData) {
       return { success: true, error: null }
     }
   } catch (error: any) {
+    const msg = error?.message || ''
+    if (msg.includes('locked') || msg.includes('too many')) {
+      return { success: false, error: 'Account temporarily locked due to too many failed attempts. Please try again later.' }
+    }
+    if (msg.includes('verify') || msg.includes('confirm')) {
+      return { success: false, error: 'Please verify your email before signing in.' }
+    }
     return { success: false, error: 'Invalid email or password. Please try again.' }
   }
-  
+
   return { success: false, error: 'An unexpected error occurred.' }
 }

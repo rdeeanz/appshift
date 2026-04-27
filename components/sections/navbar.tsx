@@ -12,7 +12,18 @@ export function Navbar() {
 
   useEffect(() => setMounted(true), [])
 
-  if (!mounted) return null
+  if (!mounted) {
+    return (
+      <nav className="sticky top-0 z-50 bg-bg/90 backdrop-blur-xl border-b border-border">
+        <div className="max-w-[1200px] mx-auto px-5 h-[3.75rem] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[1.0625rem] font-bold text-txt">
+            <div className="w-7 h-7 rounded-md bg-accent" />
+            AppShift
+          </div>
+        </div>
+      </nav>
+    )
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-bg/90 backdrop-blur-xl border-b border-border">

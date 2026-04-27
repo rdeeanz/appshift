@@ -18,12 +18,12 @@ export function Hero({ badgeText, heading, subheading }: HeroProps) {
           </div>
         )}
         <h1 className="text-[clamp(2rem,5vw,3rem)] font-bold text-txt leading-tight mb-4 tracking-[-0.02em] font-serif">
-          {heading?.split('<br/>').map((line, i) => (
+          {heading ? heading.split('<br/>').map((line, i, arr) => (
             <React.Fragment key={i}>
               {line}
-              {i < heading.split('<br/>').length - 1 && <br />}
+              {i < arr.length - 1 && <br />}
             </React.Fragment>
-          )) || heading}
+          )) : 'Welcome'}
         </h1>
         <p className="text-[1.0625rem] text-muted leading-[1.65] max-w-[520px] mx-auto mb-8">
           {subheading}
@@ -33,7 +33,7 @@ export function Hero({ badgeText, heading, subheading }: HeroProps) {
           <input 
             type="text" 
             placeholder="Search by name, description, type, or features…" 
-            className="w-full bg-surface border border-border rounded-xl px-4 py-3 pl-12 text-[0.9375rem] text-txt shadow-sm focus:border-accent focus:ring-3 focus:ring-accent/12 outline-none transition-all" 
+            className="w-full bg-surface border border-border rounded-xl px-4 py-3 pl-12 text-[0.9375rem] text-txt shadow-sm focus:border-accent focus:ring-2 focus:ring-accent/10 outline-none transition-all" 
           />
         </div>
         <div className="flex flex-wrap justify-center gap-2">

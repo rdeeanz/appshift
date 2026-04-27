@@ -247,7 +247,7 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories, 
             <h1 className="text-[2rem] font-bold text-txt font-serif tracking-tight">{activeTab}</h1>
             <p className="text-muted mt-1">Manage your platform resources and settings.</p>
           </div>
-          {activeTab !== 'Overview' && activeTab !== 'Settings' && (
+          {activeTab !== 'Overview' && activeTab !== 'Settings' && activeTab !== 'Apps' && (
             <button 
               onClick={() => setIsModalOpen(true)}
               className="btn-primary flex items-center gap-2"
