@@ -118,13 +118,18 @@ export const seed = async () => {
     where: { id: { exists: true } },
   })
 
+  const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD
+  if (!seedAdminPassword) {
+    throw new Error('SEED_ADMIN_PASSWORD is required before running pnpm seed. Copy .env.example to .env.local and set a local admin password.')
+  }
+
   // Seed Admin User
   await payload.create({
     collection: 'users',
     data: {
       username: 'admin',
       email: 'admin@appshift.io',
-      password: process.env.SEED_ADMIN_PASSWORD || crypto.randomUUID(),
+      password: seedAdminPassword,
       role: 'admin',
     },
   })
