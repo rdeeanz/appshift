@@ -39,7 +39,8 @@ export default async function AdminDashboardPage() {
   const posts = await payload.find({
     collection: 'posts',
     limit: 100,
-    sort: '-date'
+    sort: '-date',
+    depth: 1,
   })
 
   const categories = await payload.find({

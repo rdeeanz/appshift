@@ -63,7 +63,19 @@ export default buildConfig({
     },
     {
       slug: 'media',
-      upload: true,
+      upload: {
+        staticDir: 'media',
+      },
+      hooks: {
+        afterRead: [
+          ({ doc }) => {
+            if (doc.filename) {
+              doc.url = `/media/${doc.filename}`
+            }
+            return doc
+          },
+        ],
+      },
       fields: [
         {
           name: 'alt',

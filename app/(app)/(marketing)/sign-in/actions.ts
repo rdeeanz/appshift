@@ -24,7 +24,7 @@ export async function loginAction(prevState: any, formData: FormData) {
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7, // 1 week
       })
-      return { success: true, error: null }
+      return { success: true, error: null, role: result.user?.role || 'user' }
     }
   } catch (error: any) {
     const msg = error?.message || ''

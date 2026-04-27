@@ -16,10 +16,11 @@ export function SignInForm() {
 
   useEffect(() => {
     if (state.success) {
-      router.push('/dashboard')
+      const dest = state.role === 'admin' || state.role === 'editor' ? '/dashboard' : '/'
+      router.push(dest)
       router.refresh()
     }
-  }, [state.success, router])
+  }, [state.success, state.role, router])
 
   return (
     <div className="max-w-[440px] w-full bg-surface border border-border rounded-3xl p-8 md:p-12 shadow-sm">

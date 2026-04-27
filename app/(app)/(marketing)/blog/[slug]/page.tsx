@@ -22,6 +22,7 @@ export default async function BlogPostPage({
       slug: { equals: slug },
     },
     limit: 1,
+    depth: 1,
   })
 
   const post = posts[0]
