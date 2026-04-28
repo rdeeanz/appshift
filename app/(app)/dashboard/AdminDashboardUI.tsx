@@ -20,6 +20,7 @@ import {
   Loader2
 } from 'lucide-react'
 import { createPostAction, updatePostAction, deletePostAction } from './blog-actions'
+import { createAppAction, updateAppAction, deleteAppAction } from './app-actions'
 import {
   createUserAction,
   deleteUserAction,
@@ -34,6 +35,10 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories, 
   const [userToDelete, setUserToDelete] = useState<any>(null)
   const [editingPost, setEditingPost] = useState<any>(null)
   const [postToDelete, setPostToDelete] = useState<any>(null)
+  const [editingApp, setEditingApp] = useState<any>(null)
+  const [appToDelete, setAppToDelete] = useState<any>(null)
+  const [appFeatures, setAppFeatures] = useState<string[]>([])
+  const [featureInput, setFeatureInput] = useState('')
   const [isPending, setIsPending] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -182,6 +187,97 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories, 
     }
   }
 
+  const openAppCreateModal = () => {
+    setAppFeatures([])
+    setFeatureInput('')
+    setImagePreview(null)
+    setIsModalOpen(true)
+  }
+
+  const openAppEditModal = (app: any) => {
+    setEditingApp(app)
+    setAppFeatures(app.features ? app.features.split(',').map((f: string) => f.trim()).filter(Boolean) : [])
+    setFeatureInput('')
+    setImagePreview(null)
+  }
+
+  const handleCreateApp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    const formData = new FormData(e.currentTarget)
+    formData.set('features', appFeatures.join(', '))
+    const checkboxes = e.currentTarget.querySelectorAll<HTMLInputElement>('input[data-license]')
+    const licenses = Array.from(checkboxes).filter(c => c.checked).map(c => c.value)
+    formData.set('license', licenses.join(', '))
+    const platformCbs = e.currentTarget.querySelectorAll<HTMLInputElement>('input[data-platform]')
+    const plats = Array.from(platformCbs).filter(c => c.checked).map(c => c.value)
+    formData.set('platforms', plats.join(', '))
+    const featuredCb = e.currentTarget.querySelector<HTMLInputElement>('input[name="isFeatured"]')
+    formData.set('isFeatured', featuredCb?.checked ? 'true' : 'false')
+    const res = await createAppAction(formData)
+    setIsPending(false)
+    if (res.success) {
+      showToast('App created successfully')
+      setIsModalOpen(false)
+      setImagePreview(null)
+      setAppFeatures([])
+    } else {
+      showToast(res.error || 'Failed to create app', 'error')
+    }
+  }
+
+  const handleUpdateApp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    const formData = new FormData(e.currentTarget)
+    formData.set('features', appFeatures.join(', '))
+    const checkboxes = e.currentTarget.querySelectorAll<HTMLInputElement>('input[data-license]')
+    const licenses = Array.from(checkboxes).filter(c => c.checked).map(c => c.value)
+    formData.set('license', licenses.join(', '))
+    const platformCbs = e.currentTarget.querySelectorAll<HTMLInputElement>('input[data-platform]')
+    const plats = Array.from(platformCbs).filter(c => c.checked).map(c => c.value)
+    formData.set('platforms', plats.join(', '))
+    const featuredCb = e.currentTarget.querySelector<HTMLInputElement>('input[name="isFeatured"]')
+    formData.set('isFeatured', featuredCb?.checked ? 'true' : 'false')
+    const res = await updateAppAction(editingApp.id, formData)
+    setIsPending(false)
+    if (res.success) {
+      showToast('App updated successfully')
+      setEditingApp(null)
+      setImagePreview(null)
+      setAppFeatures([])
+    } else {
+      showToast(res.error || 'Failed to update app', 'error')
+    }
+  }
+
+  const handleDeleteApp = async () => {
+    setIsPending(true)
+    const res = await deleteAppAction(appToDelete.id)
+    setIsPending(false)
+    if (res.success) {
+      showToast('App deleted successfully')
+      setAppToDelete(null)
+    } else {
+      showToast(res.error || 'Failed to delete app', 'error')
+    }
+  }
+
+  const addFeatureTag = () => {
+    const val = featureInput.trim()
+    if (val && !appFeatures.includes(val)) {
+      setAppFeatures([...appFeatures, val])
+    }
+    setFeatureInput('')
+  }
+
+  const removeFeatureTag = (tag: string) => {
+    setAppFeatures(appFeatures.filter(f => f !== tag))
+  }
+
+  const LICENSE_OPTIONS = ['Free', 'Freemium', 'Paid', 'Open Source', 'Proprietary']
+  const PLATFORM_OPTIONS = ['Mac', 'Windows', 'Linux', 'iOS', 'Android', 'Online', 'Docker', 'Self-Hosted']
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-bg">
       {/* Toast Notification */}
@@ -247,9 +343,9 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories, 
             <h1 className="text-[2rem] font-bold text-txt font-serif tracking-tight">{activeTab}</h1>
             <p className="text-muted mt-1">Manage your platform resources and settings.</p>
           </div>
-          {activeTab !== 'Overview' && activeTab !== 'Settings' && activeTab !== 'Apps' && (
+          {activeTab !== 'Overview' && activeTab !== 'Settings' && (
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => activeTab === 'Apps' ? openAppCreateModal() : setIsModalOpen(true)}
               className="btn-primary flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
@@ -304,7 +400,10 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories, 
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="p-2 text-faint hover:text-accent"><MoreVertical className="w-5 h-5" /></button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => openAppEditModal(app)} className="p-2 text-faint hover:text-blue-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => setAppToDelete(app)} className="p-2 text-faint hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -409,8 +508,244 @@ export function AdminDashboardUI({ user, stats, apps, users, posts, categories, 
         )}
       </main>
 
-      {/* User Modals... (omitted for brevity in this replace call but should be kept) */}
-      {/* (I'll re-include everything in the final code) */}
+      {/* App Create Modal */}
+      {(isModalOpen && activeTab === 'Apps') && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-txt/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-3xl bg-surface border border-border rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 flex items-center justify-between border-b border-border">
+              <h2 className="text-[1.5rem] font-bold text-txt font-serif">Create New App</h2>
+              <button onClick={() => { setIsModalOpen(false); setImagePreview(null); setAppFeatures([]); }} className="p-2 hover:bg-surface-alt rounded-full transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleCreateApp} className="p-8 space-y-5 overflow-y-auto max-h-[70vh]">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Name</label>
+                  <input name="name" required type="text" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Category</label>
+                  <select name="category" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent appearance-none">
+                    <option value="">Select category</option>
+                    {categories.map((cat: any) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Hero Image</label>
+                  <div className="flex flex-col gap-3">
+                    <input name="heroImage" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageChange}
+                      className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent text-[0.875rem] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[0.75rem] file:font-bold file:bg-accentLight file:text-accent hover:file:bg-accent hover:file:text-white transition-all" />
+                    {imagePreview && (
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-surface-alt">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => setImagePreview(null)} className="absolute top-2 right-2 p-1.5 bg-bg/80 backdrop-blur-md rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">App Type</label>
+                  <input name="type" type="text" placeholder="e.g. AI Coding Assistant" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Official Website URL</label>
+                  <input name="link" required type="url" placeholder="https://..." className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Origin Country</label>
+                  <input name="origin" type="text" placeholder="e.g. United States" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">License</label>
+                <div className="flex flex-wrap gap-3">
+                  {LICENSE_OPTIONS.map(l => (
+                    <label key={l} className="flex items-center gap-2 cursor-pointer group">
+                      <input type="checkbox" data-license="true" value={l} className="w-4 h-4 rounded border-border accent-accent" />
+                      <span className="text-[0.875rem] text-muted group-hover:text-txt">{l}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Editor&apos;s Pick</label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input name="isFeatured" type="checkbox" value="true" className="w-5 h-5 rounded border-border accent-accent" />
+                  <span className="text-[0.875rem] text-muted">Feature this app</span>
+                </label>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Platform</label>
+                <div className="flex flex-wrap gap-3">
+                  {PLATFORM_OPTIONS.map(p => (
+                    <label key={p} className="flex items-center gap-2 cursor-pointer group">
+                      <input type="checkbox" data-platform="true" value={p} className="w-4 h-4 rounded border-border accent-accent" />
+                      <span className="text-[0.875rem] text-muted group-hover:text-txt">{p}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Description / About</label>
+                <textarea name="description" required rows={4} className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Features (tags)</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {appFeatures.map(f => (
+                    <span key={f} className="flex items-center gap-1.5 bg-accentLight text-accent text-[0.8125rem] font-bold px-3 py-1 rounded-full">
+                      {f}
+                      <button type="button" onClick={() => removeFeatureTag(f)} className="hover:text-red-500"><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input type="text" value={featureInput} onChange={e => setFeatureInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addFeatureTag(); } }} placeholder="Type a feature and press Enter" className="flex-1 bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent text-[0.875rem]" />
+                  <button type="button" onClick={addFeatureTag} className="px-4 py-3 bg-surface-alt border border-border rounded-xl text-[0.875rem] font-bold text-muted hover:text-txt transition-colors">Add</button>
+                </div>
+              </div>
+              <button disabled={isPending} className="btn-primary w-full h-12 shadow-lg shadow-accent/20 mt-4 flex items-center justify-center gap-2">
+                {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Save App
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* App Edit Modal */}
+      {editingApp && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-txt/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-3xl bg-surface border border-border rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 flex items-center justify-between border-b border-border">
+              <h2 className="text-[1.5rem] font-bold text-txt font-serif">Edit App</h2>
+              <button onClick={() => { setEditingApp(null); setImagePreview(null); setAppFeatures([]); }} className="p-2 hover:bg-surface-alt rounded-full transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleUpdateApp} className="p-8 space-y-5 overflow-y-auto max-h-[70vh]">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Name</label>
+                  <input name="name" defaultValue={editingApp.name} required type="text" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Category</label>
+                  <select name="category" defaultValue={editingApp.category?.id || editingApp.category || ''} className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent appearance-none">
+                    <option value="">Select category</option>
+                    {categories.map((cat: any) => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Hero Image</label>
+                  <div className="flex flex-col gap-3">
+                    <input name="heroImage" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageChange}
+                      className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent text-[0.875rem] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[0.75rem] file:font-bold file:bg-accentLight file:text-accent hover:file:bg-accent hover:file:text-white transition-all" />
+                    {(imagePreview || editingApp.heroImage?.url) && (
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-surface-alt">
+                        <img src={imagePreview || editingApp.heroImage?.url} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">App Type</label>
+                  <input name="type" defaultValue={editingApp.type || ''} type="text" placeholder="e.g. AI Coding Assistant" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Official Website URL</label>
+                  <input name="link" defaultValue={editingApp.link} required type="url" placeholder="https://..." className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Origin Country</label>
+                  <input name="origin" defaultValue={editingApp.origin || ''} type="text" placeholder="e.g. United States" className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">License</label>
+                <div className="flex flex-wrap gap-3">
+                  {LICENSE_OPTIONS.map(l => (
+                    <label key={l} className="flex items-center gap-2 cursor-pointer group">
+                      <input type="checkbox" data-license="true" value={l} defaultChecked={editingApp.license?.includes(l)} className="w-4 h-4 rounded border-border accent-accent" />
+                      <span className="text-[0.875rem] text-muted group-hover:text-txt">{l}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Editor&apos;s Pick</label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input name="isFeatured" type="checkbox" value="true" defaultChecked={editingApp.isFeatured} className="w-5 h-5 rounded border-border accent-accent" />
+                  <span className="text-[0.875rem] text-muted">Feature this app</span>
+                </label>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Platform</label>
+                <div className="flex flex-wrap gap-3">
+                  {PLATFORM_OPTIONS.map(p => (
+                    <label key={p} className="flex items-center gap-2 cursor-pointer group">
+                      <input type="checkbox" data-platform="true" value={p} defaultChecked={editingApp.platforms?.includes(p)} className="w-4 h-4 rounded border-border accent-accent" />
+                      <span className="text-[0.875rem] text-muted group-hover:text-txt">{p}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Description / About</label>
+                <textarea name="description" defaultValue={editingApp.description} required rows={4} className="w-full bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[0.75rem] font-bold text-txt uppercase tracking-widest ml-1">Features (tags)</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {appFeatures.map(f => (
+                    <span key={f} className="flex items-center gap-1.5 bg-accentLight text-accent text-[0.8125rem] font-bold px-3 py-1 rounded-full">
+                      {f}
+                      <button type="button" onClick={() => removeFeatureTag(f)} className="hover:text-red-500"><X className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input type="text" value={featureInput} onChange={e => setFeatureInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addFeatureTag(); } }} placeholder="Type a feature and press Enter" className="flex-1 bg-bg border border-border rounded-xl px-4 py-3 outline-none focus:border-accent text-[0.875rem]" />
+                  <button type="button" onClick={addFeatureTag} className="px-4 py-3 bg-surface-alt border border-border rounded-xl text-[0.875rem] font-bold text-muted hover:text-txt transition-colors">Add</button>
+                </div>
+              </div>
+              <button disabled={isPending} className="btn-primary w-full h-12 shadow-lg shadow-accent/20 mt-4 flex items-center justify-center gap-2">
+                {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* App Delete Confirm Modal */}
+      {appToDelete && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-txt/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-surface border border-border rounded-[2rem] shadow-2xl p-8 animate-in zoom-in-95 duration-200 text-center">
+            <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Trash2 className="w-10 h-10" />
+            </div>
+            <h2 className="text-[1.5rem] font-bold text-txt font-serif mb-2">Delete App?</h2>
+            <p className="text-muted mb-8 leading-relaxed">Are you sure you want to delete <span className="font-bold text-txt">{appToDelete.name}</span>? This action is permanent.</p>
+            <div className="grid grid-cols-2 gap-4">
+              <button onClick={() => setAppToDelete(null)} className="h-12 rounded-xl bg-surface-alt font-bold text-txt hover:bg-border transition-colors">Cancel</button>
+              <button onClick={handleDeleteApp} disabled={isPending} className="h-12 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
+                {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Blog Create Modal */}
       {(isModalOpen && activeTab === 'Blog') && (

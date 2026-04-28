@@ -6,6 +6,7 @@ import { ExternalLink, Info, Globe, Shield, Monitor } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 export default async function AppDetailPage({
   params,

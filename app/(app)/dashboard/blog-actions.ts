@@ -5,6 +5,16 @@ import { revalidatePath } from 'next/cache'
 import { headers as nextHeaders } from 'next/headers'
 import { Buffer } from 'node:buffer'
 
+function toSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 async function getAuthUser() {
   const payload = await getPayload({ config: configPromise })
   const headers = await nextHeaders()
@@ -18,7 +28,7 @@ export async function createPostAction(formData: FormData) {
     if (!user || (user.role !== 'admin' && user.role !== 'editor')) throw new Error('Unauthorized')
 
     const title = formData.get('title') as string
-    const slug = formData.get('slug') as string
+    const slug = toSlug(formData.get('slug') as string)
     const author = formData.get('author') as string
     const date = formData.get('date') as string
     const category = formData.get('category') as string
@@ -72,6 +82,7 @@ export async function createPostAction(formData: FormData) {
       },
     })
     revalidatePath('/blog')
+    revalidatePath(`/blog/${slug}`)
     revalidatePath('/dashboard')
     return { success: true }
   } catch (error: any) {
@@ -86,7 +97,7 @@ export async function updatePostAction(id: string, formData: FormData) {
     if (!user || (user.role !== 'admin' && user.role !== 'editor')) throw new Error('Unauthorized')
 
     const title = formData.get('title') as string
-    const slug = formData.get('slug') as string
+    const slug = toSlug(formData.get('slug') as string)
     const author = formData.get('author') as string
     const date = formData.get('date') as string
     const category = formData.get('category') as string

@@ -25,7 +25,8 @@ export default async function AdminDashboardPage() {
   const apps = await payload.find({
     collection: 'apps',
     limit: 100,
-    sort: '-createdAt'
+    sort: '-createdAt',
+    depth: 1,
   })
 
   const users = canManageUsers
